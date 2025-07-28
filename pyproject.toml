@@ -1,6 +1,6 @@
 [project]
 name = "zod"
-version = "0.7.0"
+version = "0.8.0"
 description = "Zenseact Open Dataset"
 authors = [{ name = "Zenseact", email = "opendataset@zenseact.com" }]
 requires-python = ">=3.9"
