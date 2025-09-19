@@ -1,4 +1,5 @@
 """Global static parameters dataclass."""
+
 from dataclasses import dataclass
 
 
@@ -29,10 +30,10 @@ class ZodConfigs:
     )
 
     BATCH_SIZE: int = 32
-    TEST_SIZE: int = 0.1 # fraction of test data to use
-    VAL_SIZE:int = 0.1 # fraction of train data to use for validation
+    TEST_SIZE: int = 0.1  # fraction of test data to use
+    VAL_SIZE: int = 0.1  # fraction of train data to use for validation
 
-   # File paths
+    # File paths
     STORED_GROUND_TRUTH_PATH: str = "/mnt/ZOD/ground_truth.json"
     DATASET_ROOT: str = "/mnt/ZOD"
 

@@ -1,4 +1,5 @@
 """Model manager class for Holistic Path model trained with ZOD."""
+
 import time
 from typing import Tuple
 
@@ -10,23 +11,16 @@ from model.model_config import ModelConfig
 from torch.utils.data import DataLoader
 
 
-class MultiTrajectoryModelManager():
+class MultiTrajectoryModelManager:
     """Zod dataset manager class."""
 
     def __init__(self) -> None:
         self.model_configs = ModelConfig()
-        device = torch.device(
-            "cuda"
-            if torch.cuda.is_available() and self.model_configs.USE_GPU
-            else "cpu"
-        )
+        device = torch.device("cuda" if torch.cuda.is_available() and self.model_configs.USE_GPU else "cpu")
         self.net = Net(self.model_configs).to(device)
 
     def train(
-        self,
-        trainloader: DataLoader,
-        valloader: DataLoader,
-        image_generator: ZodImageGenerator
+        self, trainloader: DataLoader, valloader: DataLoader, image_generator: ZodImageGenerator
     ) -> Tuple[list, list]:
         """Trains data to update the model parameters.
 
@@ -39,16 +33,10 @@ class MultiTrajectoryModelManager():
             tuple[list, list]: epoch_train_losses, epoch_val_losses
 
         """
-        device = torch.device(
-            "cuda"
-            if torch.cuda.is_available() and self.model_configs.USE_GPU
-            else "cpu"
-        )
+        device = torch.device("cuda" if torch.cuda.is_available() and self.model_configs.USE_GPU else "cpu")
         epochs = self.model_configs.EPOCHS
         self.net.train()
-        opt = torch.optim.Adam(
-            self.net.parameters(), lr=self.model_configs.LEARNING_RATE
-        )
+        opt = torch.optim.Adam(self.net.parameters(), lr=self.model_configs.LEARNING_RATE)
         epoch_train_losses = []
         epoch_val_losses = []
         for epoch in range(1, epochs + 1):
@@ -65,7 +53,8 @@ class MultiTrajectoryModelManager():
             epoch_train_losses.append(sum(batch_train_losses) / len(batch_train_losses))
             val_loss, _ = self.test(valloader)
             epoch_val_losses.append(val_loss)
-            print(f"Epoch completed in {time.time()-tstart:.2f} seconds with "
+            print(
+                f"Epoch completed in {time.time() - tstart:.2f} seconds with "
                 + f"{len(trainloader)} batches of batch size {trainloader.batch_size}"
             )
             print(f"Train loss for epoch {epoch}: {epoch_train_losses[-1]:.2f}")
@@ -78,11 +67,7 @@ class MultiTrajectoryModelManager():
 
         Returns a Tuple with [loss, accuracy], let accuracy be None on regression tasks.
         """
-        device = torch.device(
-            "cuda"
-            if torch.cuda.is_available() and self.model_configs.USE_GPU
-            else "cpu"
-        )
+        device = torch.device("cuda" if torch.cuda.is_available() and self.model_configs.USE_GPU else "cpu")
         criterion = self.net.loss_fn
         self.net.eval()
         loss = []
@@ -93,4 +78,3 @@ class MultiTrajectoryModelManager():
                 loss.append(criterion(outputs, labels).item())
         self.net.train()
         return np.mean(loss), None
-

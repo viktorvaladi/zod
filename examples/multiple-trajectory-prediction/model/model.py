@@ -16,21 +16,14 @@ class MultiTrajectoryLoss:
     def __init__(self, num_modes: int) -> None:
         self.num_modes = num_modes
 
-    def __call__(
-        self, predictions: torch.Tensor, targets: torch.Tensor
-    ) -> torch.Tensor:
-        """Computes the MultiTrajectoryLoss loss on a batch.
-        """
+    def __call__(self, predictions: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        """Computes the MultiTrajectoryLoss loss on a batch."""
         batch_losses = torch.Tensor().requires_grad_(True).to(predictions.device)
         trajectories, modes = self._get_trajectory_and_modes(predictions)
         for sample_idx in range(predictions.shape[0]):
-            best_mode = self._compute_best_mode(
-                target=targets[sample_idx], trajectories=trajectories[sample_idx]
-            )
+            best_mode = self._compute_best_mode(target=targets[sample_idx], trajectories=trajectories[sample_idx])
             best_mode_trajectory = trajectories[sample_idx, best_mode].reshape(-1)
-            regression_loss = f.smooth_l1_loss(
-                best_mode_trajectory, targets[sample_idx]
-            )
+            regression_loss = f.smooth_l1_loss(best_mode_trajectory, targets[sample_idx])
             mode_probabilities = modes[sample_idx].unsqueeze(0)
             best_mode_target = torch.tensor([best_mode], device=predictions.device)
             classification_loss = f.cross_entropy(mode_probabilities, best_mode_target)
@@ -38,9 +31,7 @@ class MultiTrajectoryLoss:
             batch_losses = torch.cat((batch_losses, loss.unsqueeze(0)), 0)
         return torch.mean(batch_losses)
 
-    def _compute_best_mode(
-        self, target: torch.tensor, trajectories: torch.tensor
-    ) -> torch.tensor:
+    def _compute_best_mode(self, target: torch.tensor, trajectories: torch.tensor) -> torch.tensor:
         """Finds the index of the best mode based on l1 norm from the ground truth."""
         l1_norms = torch.empty(trajectories.shape[0])
 
@@ -50,11 +41,8 @@ class MultiTrajectoryLoss:
 
         return torch.argmin(l1_norms)
 
-    def _get_trajectory_and_modes(
-        self, model_prediction: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Splits the predictions from the model into mode probabilities and trajectory.
-        """
+    def _get_trajectory_and_modes(self, model_prediction: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Splits the predictions from the model into mode probabilities and trajectory."""
         mode_probabilities = model_prediction[:, -self.num_modes :].clone()
 
         desired_shape = (
@@ -62,9 +50,7 @@ class MultiTrajectoryLoss:
             self.num_modes,
             -1,
         )
-        trajectories = (
-            model_prediction[:, : -self.num_modes].clone().reshape(desired_shape)
-        )
+        trajectories = model_prediction[:, : -self.num_modes].clone().reshape(desired_shape)
 
         return trajectories, mode_probabilities
 
@@ -75,17 +61,11 @@ class Net(pl.LightningModule):
     def __init__(self, model_configs: ModelConfig) -> None:
         super(Net, self).__init__()
         self.model_configs = model_configs
-        self.model = models.mobilenet_v3_large(
-            weights=models.MobileNet_V3_Large_Weights.IMAGENET1K_V1
-        )
+        self.model = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.IMAGENET1K_V1)
 
         self.loss_fn = MultiTrajectoryLoss(self.model_configs.NR_OF_MODES)
 
-        device = torch.device(
-            "cuda"
-            if torch.cuda.is_available() and self.model_configs.USE_GPU
-            else "cpu"
-        )
+        device = torch.device("cuda" if torch.cuda.is_available() and self.model_configs.USE_GPU else "cpu")
 
         self.target_dists = torch.Tensor(self.model_configs.TARGET_DISTANCES).to(device)
         self.num_target_distances = len(self.model_configs.TARGET_DISTANCES)
@@ -98,9 +78,7 @@ class Net(pl.LightningModule):
         """Forward propagation."""
         model_output = self.model(image)
 
-        trajectories = model_output[:, : -self.num_modes].reshape(
-            (-1, self.num_target_distances, 3)
-        )
+        trajectories = model_output[:, : -self.num_modes].reshape((-1, self.num_target_distances, 3))
         mode_probabilities = model_output[:, -self.num_modes :]
         scaling_factors = self.target_dists.view(-1, 1)
         trajectories *= scaling_factors
@@ -108,9 +86,7 @@ class Net(pl.LightningModule):
         if not self.training:
             mode_probabilities = f.softmax(mode_probabilities, dim=-1)
 
-        trajectories_reshaped = trajectories.reshape(
-            (-1, 3 * self.num_modes * self.num_target_distances)
-        )
+        trajectories_reshaped = trajectories.reshape((-1, 3 * self.num_modes * self.num_target_distances))
 
         return torch.cat([trajectories_reshaped, mode_probabilities], dim=-1)
 

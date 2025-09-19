@@ -1,4 +1,5 @@
 """Zod dataset manager."""
+
 from typing import Tuple
 
 from dataset.groundtruth_utils import load_ground_truth
@@ -12,14 +13,12 @@ from torchvision import transforms
 from zod import ZodFrames, constants
 
 
-class ZodDatasetManager():
+class ZodDatasetManager:
     """Zod dataset manager class."""
 
     def __init__(self) -> None:
         self.zod_configs = ZodConfigs()
-        self.zod_frames = ZodFrames(
-            dataset_root=self.zod_configs.DATASET_ROOT, version="full"
-        )
+        self.zod_frames = ZodFrames(dataset_root=self.zod_configs.DATASET_ROOT, version="full")
         self.transform = self._get_transform()
         self.ground_truth = load_ground_truth(self.zod_configs.STORED_GROUND_TRUTH_PATH)
         self.test_frames = None
@@ -28,15 +27,9 @@ class ZodDatasetManager():
         """Load the ZOD test dataset from the VAL partition. Server side test set."""
         validation_frames_all = self.zod_frames.get_split(constants.VAL)
 
-        validation_frames_all = [
-            idx
-            for idx in validation_frames_all
-            if self._is_valid_frame(idx, self.ground_truth)
-        ]
+        validation_frames_all = [idx for idx in validation_frames_all if self._is_valid_frame(idx, self.ground_truth)]
 
-        validation_frames = validation_frames_all[
-            : int(len(validation_frames_all) * self.zod_configs.TEST_SIZE)
-        ]
+        validation_frames = validation_frames_all[: int(len(validation_frames_all) * self.zod_configs.TEST_SIZE)]
 
         self.test_frames = validation_frames
 
@@ -54,11 +47,7 @@ class ZodDatasetManager():
         """Get train and validation dataloader for client side."""
         train_frames = self.zod_frames.get_split(constants.TRAIN)
 
-        train_frames = [
-            idx
-            for idx in train_frames
-            if self._is_valid_frame(idx, self.ground_truth)
-        ]
+        train_frames = [idx for idx in train_frames if self._is_valid_frame(idx, self.ground_truth)]
         trainset = ZodDataset(
             zod_frames=self.zod_frames,
             frames_id_set=train_frames,
@@ -72,9 +61,7 @@ class ZodDatasetManager():
         len_train = int(len(trainset) - len_val)
 
         lengths = [len_train, len_val]
-        ds_train, ds_val = random_split(
-            trainset, lengths, Generator().manual_seed(seed)
-        )
+        ds_train, ds_val = random_split(trainset, lengths, Generator().manual_seed(seed))
         train_sampler = RandomSampler(ds_train)
         trainloader = DataLoader(
             ds_train,
@@ -83,9 +70,7 @@ class ZodDatasetManager():
             num_workers=0,
             sampler=train_sampler,
         )
-        valloader = DataLoader(
-            ds_val, batch_size=self.zod_configs.BATCH_SIZE, num_workers=0
-        )
+        valloader = DataLoader(ds_val, batch_size=self.zod_configs.BATCH_SIZE, num_workers=0)
 
         return trainloader, valloader
 
@@ -101,9 +86,7 @@ class ZodDatasetManager():
             transforms.Compose(
                 [
                     transforms.ToTensor(),
-                    transforms.Normalize(
-                        self.zod_configs.NORMALIZE_MEAN, self.zod_configs.NORMALIZE_STD
-                    ),
+                    transforms.Normalize(self.zod_configs.NORMALIZE_MEAN, self.zod_configs.NORMALIZE_STD),
                 ]
             )
             if self.zod_configs.USE_PRE_RESIZED_IMGS
@@ -114,9 +97,7 @@ class ZodDatasetManager():
                         (self.zod_configs.IMG_SIZE, self.zod_configs.IMG_SIZE),
                         antialias=True,
                     ),
-                    transforms.Normalize(
-                        self.zod_configs.NORMALIZE_MEAN, self.zod_configs.NORMALIZE_STD
-                    ),
+                    transforms.Normalize(self.zod_configs.NORMALIZE_MEAN, self.zod_configs.NORMALIZE_STD),
                 ]
             )
         )
@@ -127,4 +108,3 @@ class ZodDatasetManager():
             return False
 
         return frame_id in ground_truth
-

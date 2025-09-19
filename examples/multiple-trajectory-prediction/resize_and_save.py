@@ -1,4 +1,5 @@
 """Script to resize images and save them (robust to corrupt/truncated files)."""
+
 import glob
 import os
 from pathlib import Path
@@ -16,14 +17,13 @@ def looks_like_jpeg(path: str) -> bool:
     except Exception:
         return False
 
+
 def resize_images(source_directory: str, size: int) -> None:
     """Resize script to save a new ZOD single frames dataset to specified size.
 
     Data is saved as original_name_resized.jpg.
     """
-    pattern = os.path.join(
-        source_directory, "single_frames", "*", "camera_front_dnat", "*.jpg"
-    )
+    pattern = os.path.join(source_directory, "single_frames", "*", "camera_front_dnat", "*.jpg")
     files = glob.glob(pattern)
 
     bad_list_path = Path(source_directory) / "bad_images.txt"
@@ -68,6 +68,7 @@ def resize_images(source_directory: str, size: int) -> None:
         f"Skipped {skipped} bad/unreadable files.\n"
         f"See bad image list at: {bad_list_path}"
     )
+
 
 if __name__ == "__main__":
     configs = ZodConfigs()

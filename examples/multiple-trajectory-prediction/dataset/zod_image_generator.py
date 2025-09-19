@@ -23,7 +23,7 @@ from zod.utils.geometry import (
 )
 
 
-class ZodImageGenerator():
+class ZodImageGenerator:
     """Image generator."""
 
     def __init__(
@@ -59,11 +59,7 @@ class ZodImageGenerator():
                 ),
             ]
         )
-        device = torch.device(
-            "cuda"
-            if torch.cuda.is_available() and self.model_config.USE_GPU
-            else "cpu"
-        )
+        device = torch.device("cuda" if torch.cuda.is_available() and self.model_config.USE_GPU else "cpu")
 
         while len(self.images) < self.n_images:
             # pick a random frame from dataset
@@ -86,9 +82,7 @@ class ZodImageGenerator():
             except (TypeError, ValueError, FileNotFoundError):
                 pass
 
-    def visualize_prediction_on_image(
-        self, model: torch.nn.Module, save_tag: str
-    ) -> torch.Tensor:
+    def visualize_prediction_on_image(self, model: torch.nn.Module, save_tag: str) -> torch.Tensor:
         """Visualize true and predicted holistic path on each image.
 
         Also combine the images into a grid.
@@ -101,11 +95,7 @@ class ZodImageGenerator():
             torch.Tensor: grid image with visualized predictions
 
         """
-        device = torch.device(
-            "cuda"
-            if torch.cuda.is_available() and self.model_config.USE_GPU
-            else "cpu"
-        )
+        device = torch.device("cuda" if torch.cuda.is_available() and self.model_config.USE_GPU else "cpu")
         model.eval()
         model.to(device)
 
@@ -118,15 +108,8 @@ class ZodImageGenerator():
                     predicted_path = model(image)[0, :]
                 zod_frame = self.zod_frames[frame_id]
                 raw_image = zod_frame.get_image(Anonymization.DNAT)
-                trajectories = list(
-                    predicted_path[: -self.model_config.NR_OF_MODES]
-                    .reshape((-1, 51))
-                    .cpu()
-                    .numpy()
-                )
-                mode_probabilities = list(
-                    predicted_path[-self.model_config.NR_OF_MODES :]
-                )
+                trajectories = list(predicted_path[: -self.model_config.NR_OF_MODES].reshape((-1, 51)).cpu().numpy())
+                mode_probabilities = list(predicted_path[-self.model_config.NR_OF_MODES :])
 
                 final_image = self._visualize_paths_on_image(
                     raw_image,
@@ -202,9 +185,7 @@ class ZodImageGenerator():
         camerapoints = transform_points(points[:, :3], t_inv)
 
         # filter points that are not in the camera field of view
-        points_in_fov = get_points_in_camera_fov(
-            calibrations.cameras[camera].field_of_view, camerapoints
-        )
+        points_in_fov = get_points_in_camera_fov(calibrations.cameras[camera].field_of_view, camerapoints)
         points_in_fov = points_in_fov[0]
 
         # project points to image plane
@@ -237,9 +218,7 @@ class ZodImageGenerator():
         true_path = get_ground_truth(zod_frames, frame_id, self.zod_configs)
 
         # add true path to image
-        true_path_pov, image = self._transform_absolute_to_relative_path(
-            image, true_path, camera, calibrations
-        )
+        true_path_pov, image = self._transform_absolute_to_relative_path(image, true_path, camera, calibrations)
 
         ground_truth_color = (20, 150, 61)  # (19, 80, 41)
         image = self._draw_line(image, true_path_pov, ground_truth_color)
@@ -259,9 +238,7 @@ class ZodImageGenerator():
             mid_points.append(self._get_mid_points(predicted_path_pov))
         if probabilities is not None:
             for i, probability in enumerate(probabilities):
-                image = self._add_probability_text(
-                    str(int(round(probability.item() * 100))), image, mid_points[i]
-                )
+                image = self._add_probability_text(str(int(round(probability.item() * 100))), image, mid_points[i])
         return image
 
     def _get_mid_points(self, points: List) -> tuple:
@@ -270,9 +247,7 @@ class ZodImageGenerator():
             points[len(points) // 2][1],
         )
 
-    def _add_probability_text(
-        self, prob: str, image: np.ndarray, point: tuple
-    ) -> np.ndarray:
+    def _add_probability_text(self, prob: str, image: np.ndarray, point: tuple) -> np.ndarray:
         """Adds the prob string on the image at the point."""
         cv2.putText(
             image,

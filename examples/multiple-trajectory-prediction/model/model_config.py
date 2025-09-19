@@ -1,4 +1,5 @@
 """Model specific static parameters dataclass."""
+
 from dataclasses import dataclass
 
 

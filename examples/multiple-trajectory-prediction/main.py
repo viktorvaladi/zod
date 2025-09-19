@@ -19,5 +19,6 @@ def main() -> None:
     # test
     model_manager.test(test_loader)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

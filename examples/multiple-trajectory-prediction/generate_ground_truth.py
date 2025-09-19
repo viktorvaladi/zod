@@ -14,9 +14,4 @@ def generate_ground_truth() -> None:
     training_frames_all = zod_frames.get_split(constants.TRAIN)
     validation_frames_all = zod_frames.get_split(constants.VAL)
 
-    save_ground_truth(
-        zod_frames,
-        training_frames_all,
-        validation_frames_all,
-        zod_configs=zod_configs
-    )
+    save_ground_truth(zod_frames, training_frames_all, validation_frames_all, zod_configs=zod_configs)

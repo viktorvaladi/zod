@@ -1,4 +1,5 @@
 """Zod dataset, dataset class."""
+
 import cv2
 from dataset.groundtruth_utils import get_ground_truth
 from dataset.zod_configs import ZodConfigs
@@ -52,8 +53,11 @@ class ZodDataset(Dataset):
             image = frame.get_image(Anonymization.DNAT)
         label = None
 
-        label = self.stored_ground_truth[frame_idx] if self.stored_ground_truth else get_ground_truth(
-            self.zod_frames, frame_idx, self.zod_configs)
+        label = (
+            self.stored_ground_truth[frame_idx]
+            if self.stored_ground_truth
+            else get_ground_truth(self.zod_frames, frame_idx, self.zod_configs)
+        )
 
         label = label.astype("float32")
 

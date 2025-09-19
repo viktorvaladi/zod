@@ -10,9 +10,7 @@ from tqdm import tqdm
 from zod import ZodFrames
 
 
-def get_ground_truth(
-    zod_frames: ZodFrames, frame_id: int, zod_configs: ZodConfigs
-) -> np.array:
+def get_ground_truth(zod_frames: ZodFrames, frame_id: int, zod_configs: ZodConfigs) -> np.array:
     """Get true holistic path from future GPS locations.
 
     Args:
@@ -38,9 +36,7 @@ def get_ground_truth(
         accumulated_distances = np.cumsum(distances).astype(int).tolist()
 
         # get the poses that each have a point having a distance from TARGET_DISTANCES
-        pose_idx = [
-            accumulated_distances.index(i) for i in zod_configs.TARGET_DISTANCES
-        ]
+        pose_idx = [accumulated_distances.index(i) for i in zod_configs.TARGET_DISTANCES]
         used_poses = transformed_poses[pose_idx]
 
     except Exception as _:
@@ -99,4 +95,3 @@ def load_ground_truth(path: str) -> dict:
         gt[f] = np.array(gt[f])
 
     return gt
-
